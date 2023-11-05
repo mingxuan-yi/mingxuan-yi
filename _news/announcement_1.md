@@ -5,4 +5,4 @@ inline: true
 related_posts: false
 ---
 
-A simple inline announcement.
+I have a new preprint up on Arxiv! Check it out here. :smile:
