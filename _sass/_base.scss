@@ -352,7 +352,7 @@ blockquote {
   text-align: center;
 
   .contact-icons {
-    font-size: 4rem;
+    font-size: 2rem;
 
     a {
       i::before {
@@ -689,6 +689,8 @@ footer.sticky-bottom {
         .award {
           color: var(--global-theme-color) !important;
           border: 1px solid var(--global-theme-color);
+          padding-left: 1rem;
+          padding-right: 1rem;
         }
       }
 
@@ -754,6 +756,11 @@ footer.sticky-bottom {
           }
         }
       }
+
+      .honor {
+        color: var(--global-theme-color);      
+        font-weight: bolder;
+      }    
 
       .hidden {
         font-size: 0.875rem;

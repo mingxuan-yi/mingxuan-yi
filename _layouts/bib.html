@@ -24,6 +24,15 @@
             <abbr class="badge" {% if venue_style %}{{venue_style}}{% endif %}><a href="{{site.data.venues[entry.abbr].url}}">{{entry.abbr}}</a></abbr>
           {%- else -%}
             <abbr class="badge">{{entry.abbr}}</abbr>
+            {%- if entry.abbr2 -%}
+            <abbr class="badge">{{entry.abbr2}}</abbr>
+            {%- endif -%}
+            {%- if entry.award -%}
+            <span class="award badge">{{entry.award}}</span>
+            {%- endif -%}
+            {%- if entry.award2 -%}
+            <span class="award badge">{{entry.award2}}</span>
+            {%- endif -%}
           {%- endif -%}
         {%- endif -%}
         </div>
@@ -135,7 +144,11 @@
         <div class="periodical">
           {{ entry.note | strip }}
         </div>
-
+        {%- if entry.honor -%}
+        <span class="honor">
+          {{entry.honor}}
+        </span>
+        {%- endif -%}
           <!-- Links/Buttons -->
           <div class="links">
           {%- if entry.abstract %}

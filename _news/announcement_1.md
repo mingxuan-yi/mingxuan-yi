@@ -5,4 +5,4 @@ inline: true
 related_posts: false
 ---
 
-I have a new preprint up on Arxiv! Check it out here. :smile:
+New preprint released on Arxiv! Check it out here. :smile:
