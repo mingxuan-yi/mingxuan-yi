@@ -5,4 +5,4 @@ inline: true
 related_posts: false
 ---
 
-New preprint released on Arxiv! Check it out here. :smile:
+New preprint released on Arxiv! Check it out [here](https://arxiv.org/abs/2310.20090). :smile:
