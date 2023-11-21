@@ -12,7 +12,7 @@ toc:
 ---
 
 ## 1. Introduction
-This post provides a simple numerical approach using [PyTorch](https://pytorch.org/) to simulate the probability flow ordinary differential equation (ODE) of the Langevin dynamics. The implementation is super simple, one just needs to slightly modify a code of [Generative Adversarial Nets](https://arxiv.org/abs/1406.2661). Such implementation can be understood as ''non-parametric GANs'', which is an alternative view on GAN via the probability flow ODE, more details can be found in my paper ''[MonoFlow: Rethinking Divergence GANs via the Perspective of Wasserstein Gradient Flows](https://arxiv.org/abs/2302.01075)'' , or another excellant paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' by [Jean-Yves Franceschi](https://jyfranceschi.fr/). Briefly speaking, GANs can work without generators as a direct particle flow methods similar to diffusion models.
+This post provides a simple numerical approach using [PyTorch](https://pytorch.org/) to simulate the probability flow ordinary differential equation (ODE) of the Langevin dynamics. The implementation is super simple, one just needs to slightly modify a code of Generative Adversarial Nets. Such implementation can be understood as ''non-parametric GANs'', which is an alternative view on GAN via the probability flow ODE, more details can be found in my paper ''[MonoFlow: Rethinking Divergence GANs via the Perspective of Wasserstein Gradient Flows](https://arxiv.org/abs/2302.01075)'' , or another excellant paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' by [Jean-Yves Franceschi](https://jyfranceschi.fr/). Briefly speaking, GANs can work without generators as a direct particle flow method similar to diffusion models.
 
 <figure style="text-align:center;">
   <img src="{{ site.baseurl }}/assets/img/blog_pic/particles.gif" alt="Prob flow ODE" class="img-fluid rounded z-depth-1" style="width: 40%; height: auto; margin-left: auto; margin-right: auto;">
@@ -24,7 +24,7 @@ The Langevin dynamics reads a stochastic differential equation (SDE),
 \begin{align}
 \mathrm{d} \mathbf{x}\_t = \nabla\_\mathbf{x} \log p(\mathbf{x}\_t)\mathrm{d}t + \sqrt{2} \mathrm{d}\mathbf{w}\_t,
 \end{align}
-where $$\mathbf{w}_t$$ represents the Brownian motion. Under mild conditions, the marginal $$\mathbf{x}_t \sim q_t$$ converges to the stationary distribution $$ p$$ or at least some local optima with frist order statinary contision, if given sufficent long time. In order to numerically simulate the Langevin dynamics, we can use the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method) to discretize the SDE, this gives the well-known unadjusted Langevin algorithm (ULA),
+where $$\mathbf{w}_t$$ represents the Brownian motion. Under mild conditions, the marginal $$\sim q_t(\mathbf{x})$$ converges to the stationary distribution $$p\mathbf{x}$$ given a sufficently long time. In order to numerically simulate the Langevin dynamics, we can use the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method) to discretize the SDE, this gives the well-known unadjusted Langevin algorithm (ULA),
 \begin{align}
 \mathbf{x}\_{i+1} \leftarrow \mathbf{x}\_{i} + \epsilon \nabla_{\mathbf{x}} \log p(\mathbf{x}\_i) + \sqrt{2\epsilon} \mathcal{N}(0, I), \quad i=0, 1, 2\cdots
 \end{align}
@@ -41,27 +41,31 @@ Similarly, using the Euler method to discretize the ODE gives
 \begin{align}
 \mathbf{x}\_{i+1} \leftarrow \mathbf{x}\_{i} + \epsilon \big[\nabla_{\mathbf{x}} \log {p(\mathbf{x}\_i)}- \nabla_{\mathbf{x}} \log {q_{i}({\mathbf{x}\_i})}\big], \quad i=0, 1, 2\cdots
 \end{align}
-It is worth noting the vector field of the probability flow ODE is the gradient of the logrithm density ratio $$\log \big[p(\mathbf{x}_i) / q_{i}({\mathbf{x}_i})\big]$$.
+It is worth noting the vector field of the probability flow ODE is the gradient of the logrithm density ratio $$\log \big[p(\mathbf{x}_i) / q_{i}({\mathbf{x}_i})\big]$$. Next, we will discuss a method to obtain the log density ratio which is analogue to training the discriminator in GANs.
 
 
 
 #### Estimating the vector field with the binary classification
-Recall that in , training a discrminator to distinguish samples from $$$$
+Recall that in GANs, we train a discriminator to solve the following binary classification problem.
 \begin{align}
 \max\_D \quad \mathbb{E}\_{p} \big[\log D(\mathbf{x})\big]+ \mathbb{E}\_{q_i} \big[\log (1-D(\mathbf{x}))\big]
 \end{align}
-The optimal discrminator is given by 
+The optimal discrminator is given by (see Proposition 4 in Goodfellow et. al. 2014)
 \begin{align}
-D^{\*}(\mathbf{x}) = \frac{p(\mathbf{x})}{p(\mathbf{x}) + q\_i(\mathbf{x})}, \quad \sigma^{-1}\big(D^{\*}(\mathbf{x})\big)  =\log \frac{p(\mathbf{x}\_i)}{q_{i}({\mathbf{x}\_i})}
+D^{\*}(\mathbf{x}) = \frac{p(\mathbf{x})}{p(\mathbf{x}) + q\_i(\mathbf{x})}.
 \end{align}
-where $$\sigma^{-1}$$ is the inverse of the Sigmoid activation, and $$\sigma^{-1}\big(D^{*}(\mathbf{x})\big)$$ is the logit output of the binary classifier.
-This gives us a strategy for sampling via the probability flow ODE which is similar to GANs, we can train a discrminator to obtain the log density ratio between $$p$$ and $$q_i$$, such that the vector field is given by 
+Since the last layer of the discriminator $$D^{*}(\mathbf{x})$$ is the Sigmoid activation function $$\sigma(\cdot)$$, inversing the Sigmoid activation gives the log density,
 \begin{align}
-\nabla_{\mathbf{x}} \log {p(\mathbf{x}\_i)}- \nabla_{\mathbf{x}} \log {q_{i}({\mathbf{x}\_i})} = \nabla_{\mathbf{x}}  \sigma^{-1}\big(D^{\*}(\mathbf{x})\big)
+\sigma^{-1}\big(D^{\*}(\mathbf{x})\big)  =\log \frac{p(\mathbf{x}\_i)}{q_{i}({\mathbf{x}\_i})},
 \end{align}
+$$\sigma^{-1}\big(D^{*}(\mathbf{x})\big)$$ is usually called the logit output of a binary classifier.
 
-## Modifying the code of GANs
- Removing the Generator in Generative Adversarial Nets
+This gives us a strategy for sampling via the probability flow ODE which is similar to training GANs, 
+- Training the discriminator with a few steps of gradient update.
+- Update particles using Eq. ()
+
+### 3. Modifying the code of GANs
+- The first step is to remove the generator `G(z)`, instead we initialize $$500$$ particles `xs` and put them into the `SGD` optimizer which corresponds to the forward Euler discretization of the ODE. One can also use `optim.Adam([xs], lr = 0.002)` to incorporate the momentum of gradients. Note that we use the loss function criterion `nn.BCEWithLogitsLoss()`, this criterion directly works with the logit output of a binary classifer.
 
 ```diff
 data_dim = 2
@@ -79,7 +83,8 @@ D_optimizer = optim.Adam(D_logit.parameters(), lr = 0.001)
 -G_optimizer = optim.Adam(G.parameters(), lr = 0.001)
 +G_optimizer = optim.SGD([xs], lr = 0.001)
 ```
-The first step is to remove the generator `G(z)`, instead we initialize $$500$$ particles `xs` and put them in to the `SGD` optimizer which corresponds to the forward Euler scehme in . One can also use the `G_optimizer = optim.Adam([xs], lr = 0.002)` to incorporate the momentum of gradients.
+
+- The next step is to modify the training procedure of GANs. There is no difference on training the discriminator, we just replace fake samples with a minibatch of `xs`. The `G_loss` is now changed to `-torch.sum(D_logit(xs))` with the purpose of computing the per particle gradient. This is because there is no explicit way to perform batch gradient operation in PyTorch, we can instead sum all per particle forward pass together to generate a scalar and backpropogating this scalar would give each particle its own gradient.
 
 ```diff
 #==============Train the discriminator===============#
@@ -107,23 +112,12 @@ G_optimizer.zero_grad()
 -x_fake, y_fake = G(z), torch.ones(batch_size, 1).to(device)
 -G_loss = criterion(D_logit(x_fake), y_fake) # non-saturate trick
 # update all particles
-+logit_xs = D_logit(xs)
 # allow for the batch gradient for each particle
-+G_loss = -torch.sum(logit_xs)
++G_loss = -torch.sum(D_logit(xs))
 G_loss.backward()
 G_optimizer.step()
 ```
-### Why the KL Divergence?
+So, that's it! We have deleted 7 lines and added 6 lines. Now we can run the code to simulate the probability flow ODE.  The complete Jupyter notebook for reproducing the experiment can be found here.
 
 
 
-The marginal distributions $$\{q_{t}\}_{t\geq 0}$$ can be viewed as the Wasserstein gradient flow minimizing the KL divergence. To this end, it seems to be confusing because here comes with both the KL divergence and the Wasserstein distance, which conflicts with the convention in which they are different measurements for the probability discrepancy, such as the GANs and Wasserstein GANs, one minimizes $f$-divergence and another minimizes the Wasserstein distance. But the indeed, they can be good partners to each. Wasserstein gradient flows refer to a curve in a metric space $$(q_t, W_2)$$ where each point is a probability distribution and the distance between any two points is the Wasserstein-2 distance. In this space we can still define the KL divergence $$\mathrm{KL}(q_t\Vert p)$$ as a function but its derivative is obtained under specific Wasserstein calculus rule given by $$\nabla_{W_2} \mathrm{KL}(q_t\Vert p) = \nabla_{\mathbf{x}} [\log (q_t/p)]$$.
-
-remember this ODE decreases the KL divergence along the steepest direction by some Wasserstein dark magic.
-
-But anyway, let's forget the Wasserstein stuffs.  ### Numerical Approaches
-We can use forward-Euler method to discretize the probability flow ODE,
-
-The Euler-Maruyama method to the Langevin dynamics gives the well known unadjusted Langevin algorithm (ULA)
-
-The numerical discretization scheme of the probability flow ODE simply replaces the term  $$\sqrt{2\epsilon} \mathcal{N}(0, I)$$ with $$ -\epsilon \nabla_{\mathbf{x}} \log {q_{i}({\mathbf{x}_i})} $$. Althoug via stochastic calculus, the ODE and SDE have the same marginal laws governed by the Fokker-Planck equation, I still have no idea why the schochastic process can be assessed by a deterministic process in the Euclidean space $$\mathbf{x}\in \mathbb{R}^n$$. Just like what Albert Einstein once said, "God does not play dice".
