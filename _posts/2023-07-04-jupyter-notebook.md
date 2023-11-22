@@ -119,5 +119,15 @@ G_optimizer.step()
 ```
 So, that's it! We have deleted 7 lines and added 6 lines. Now we can run the code to simulate the probability flow ODE.  The complete Jupyter notebook for reproducing the experiment can be found here.
 
+<div class="row mt-3">
+<div class="col-sm mt-3 mt-md-0">
+  <img src="{{ site.baseurl }}/assets/img/blog_pic/s_sgd.gif" class="img-fluid rounded z-depth-1" style="width: 90%; height: auto;">
+  <figcaption style="text-align: center; margin-top: 10px;"> Using the SGD optimizer.</figcaption>
+</div>
+<div class="col-sm mt-3 mt-md-0">
+<img src="{{ site.baseurl }}/assets/img/blog_pic/s_adam.gif" class="img-fluid rounded z-depth-1" style="width: 90%; height: auto;">
+  <figcaption style="text-align: center; margin-top: 10px;"> Using the Adam optimizer. </figcaption>
+</div>
+<div>
 
 
