@@ -1,6 +1,6 @@
 ---
 layout: post
-title: On the Probability Flow ODE of the Langevin Dynamics
+title: On the Probability Flow ODE of Langevin Dynamics
 date: 2023-11-05 08:57:00-0400
 description: an example of GANs without generators
 #tags: formatting jupyter
@@ -12,7 +12,7 @@ toc:
 ---
 
 ## 1. Introduction
-This post provides a simple numerical approach using [PyTorch](https://pytorch.org/) to simulate the probability flow ordinary differential equation (ODE) of the Langevin dynamics. The implementation is super simple, one just needs to slightly modify a code of Generative Adversarial Nets. Such implementation can be understood as ''non-parametric GANs'', which is an alternative view on GAN via the probability flow ODE, more details can be found in my paper ''[MonoFlow: Rethinking Divergence GANs via the Perspective of Wasserstein Gradient Flows](https://arxiv.org/abs/2302.01075)'' , or another excellant paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' by [Jean-Yves Franceschi](https://jyfranceschi.fr/). Briefly speaking, GANs can work without generators as a direct particle flow method similar to diffusion models.
+This post provides a simple numerical approach using [PyTorch](https://pytorch.org/) to simulate the probability flow ordinary differential equation (ODE) of Langevin dynamics. The implementation is super simple, one just needs to slightly modify a code of Generative Adversarial Nets. Such implementation can be understood as ''non-parametric GANs'', which is an alternative view on GAN via the probability flow ODE, more details can be found in my paper ''[MonoFlow: Rethinking Divergence GANs via the Perspective of Wasserstein Gradient Flows](https://arxiv.org/abs/2302.01075)'' , or another excellant paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' by [Jean-Yves Franceschi](https://jyfranceschi.fr/). Briefly speaking, GANs can work without generators as a direct particle flow method similar to diffusion models.
 
 <figure style="text-align:center;">
   <img src="{{ site.baseurl }}/assets/img/blog_pic/particles.gif" alt="Prob flow ODE" class="img-fluid rounded z-depth-1" style="width: 40%; height: auto; margin-left: auto; margin-right: auto;">
@@ -20,11 +20,17 @@ This post provides a simple numerical approach using [PyTorch](https://pytorch.o
 </figure>
 
 ## 2. Langevin dynamics and its probability flow ODE
-The Langevin dynamics reads a stochastic differential equation (SDE),
-\begin{align}
+Langevin dynamics follows a stochastic differential equation (SDE) to describe the motion of a particle $$\mathbf{x}_t \in \mathbb{R}^n$$,
+\begin{aligned}
 \mathrm{d} \mathbf{x}\_t = \nabla\_\mathbf{x} \log p(\mathbf{x}\_t)\mathrm{d}t + \sqrt{2} \mathrm{d}\mathbf{w}\_t,
-\end{align}
-where $$\mathbf{w}_t$$ represents the Brownian motion. Under mild conditions, the marginal $$\sim q_t(\mathbf{x})$$ converges to the stationary distribution $$p\mathbf{x}$$ given a sufficently long time. In order to numerically simulate the Langevin dynamics, we can use the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method) to discretize the SDE, this gives the well-known unadjusted Langevin algorithm (ULA),
+\end{aligned}
+where $$\mathbf{w}_t$$ represents the Brownian motion. Using the Itô integration, we can obtain the Fokker-Placnk equation describing the marginal laws of the dynamics,
+\begin{aligned}
+\frac{\partial q\_t(\mathbf{x})}{\partial t} = \text{div}\Big[ q\_t\big(\nabla\_\mathbf{x} \log q_t(\mathbf{x}) - \nabla\_\mathbf{x} \log p(\mathbf{x}) \big) \Big],
+\end{aligned}
+where $$\text{div}$$ is the [divergence operator](https://en.wikipedia.org/wiki/Divergence) in vector calculus. Under mild conditions, the Fokker-Planck equation shows that the equilibrium of the dynamics is achieved if and only if $$q_t=p$$ such that the infinitesimal change of the marginal $$\frac{\partial q_t}{\partial t}=0$$. Evolving a particle from the initilization $$\mathbf{x}_0 \sim q_0(\mathbf{x})$$, the marginal $$q_t(\mathbf{x})$$ converges (weakly) to the stationary distribution $$p(\mathbf{x})$$, or to some local modes of $$p(\mathbf{x})$$ within the finite time, which happens in practice. 
+
+In order to numerically simulate the Langevin dynamics, we can use the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method) to discretize the SDE, this gives the well-known unadjusted Langevin algorithm (ULA),
 \begin{align}
 \mathbf{x}\_{i+1} \leftarrow \mathbf{x}\_{i} + \epsilon \nabla_{\mathbf{x}} \log p(\mathbf{x}\_i) + \sqrt{2\epsilon} \mathcal{N}(0, I), \quad i=0, 1, 2\cdots
 \end{align}
@@ -50,22 +56,22 @@ Recall that in GANs, we train a discriminator to solve the following binary clas
 \begin{align}
 \max\_D \quad \mathbb{E}\_{p} \big[\log D(\mathbf{x})\big]+ \mathbb{E}\_{q_i} \big[\log (1-D(\mathbf{x}))\big]
 \end{align}
-The optimal discrminator is given by (see Proposition 4 in Goodfellow et. al. 2014)
+The optimal discrminator is given by (see Proposition 1 in Goodfellow et. al. 2014)
 \begin{align}
 D^{\*}(\mathbf{x}) = \frac{p(\mathbf{x})}{p(\mathbf{x}) + q\_i(\mathbf{x})}.
 \end{align}
-Since the last layer of the discriminator $$D^{*}(\mathbf{x})$$ is the Sigmoid activation function $$\sigma(\cdot)$$, inversing the Sigmoid activation gives the log density,
+Since the last layer of the discriminator $$D^{*}(\mathbf{x})$$ is activated by the Sigmoid function $$\sigma(\cdot)$$, inversing the Sigmoid activation gives the log density ratio,
 \begin{align}
 \sigma^{-1}\big(D^{\*}(\mathbf{x})\big)  =\log \frac{p(\mathbf{x}\_i)}{q_{i}({\mathbf{x}\_i})},
 \end{align}
-$$\sigma^{-1}\big(D^{*}(\mathbf{x})\big)$$ is usually called the logit output of a binary classifier.
+$$\sigma^{-1}\big(D^{*}(\mathbf{x})\big)$$ is called the logit output of a binary classifier.
 
-This gives us a strategy for sampling via the probability flow ODE which is similar to training GANs, 
+This gives us a strategy for sampling via the probability flow ODE with bi-level optimization which is similar to training GANs, 
 - Training the discriminator with a few steps of gradient update.
 - Update particles using Eq. ()
 
-### 3. Modifying the code of GANs
-- The first step is to remove the generator `G(z)`, instead we initialize $$500$$ particles `xs` and put them into the `SGD` optimizer which corresponds to the forward Euler discretization of the ODE. One can also use `optim.Adam([xs], lr = 0.002)` to incorporate the momentum of gradients. Note that we use the loss function criterion `nn.BCEWithLogitsLoss()`, this criterion directly works with the logit output of a binary classifer.
+## 3. Modifying the code of GANs
+- The first step is to remove the generator `G(z)`, instead we initialize $$500$$ particles `xs` and put them into the `SGD` optimizer corresponding to the Euler discretization of the ODE. One can also use `optim.Adam([xs], lr = 0.002)` to incorporate the momentum of gradients. Note that we use the loss function criterion `nn.BCEWithLogitsLoss()`, this criterion directly works with the logit output of a binary classifer where `D_logit` is a MLP in this example.
 
 ```diff
 data_dim = 2
@@ -84,7 +90,7 @@ D_optimizer = optim.Adam(D_logit.parameters(), lr = 0.001)
 +G_optimizer = optim.SGD([xs], lr = 0.001)
 ```
 
-- The next step is to modify the training procedure of GANs. There is no difference on training the discriminator, we just replace fake samples with a minibatch of `xs`. The `G_loss` is now changed to `-torch.sum(D_logit(xs))` with the purpose of computing the per particle gradient. This is because there is no explicit way to perform batch gradient operation in PyTorch, we can instead sum all per particle forward pass together to generate a scalar and backpropogating this scalar would give each particle its own gradient.
+- The next step is to modify the training procedure of GANs. There is no difference on training the discriminator, we just replace fake samples with a minibatch of `xs` and use a single step gradient descent to train the discriminator. The `G_loss` is now changed to `-torch.sum(D_logit(xs))` with the purpose of computing the per particle gradient. This is because there is no explicit way to perform batch gradient operation in PyTorch, we can instead sum all per particle forward pass together to generate a scalar and backpropogating this scalar would give each particle its own gradient.
 
 ```diff
 #==============Train the discriminator===============#
