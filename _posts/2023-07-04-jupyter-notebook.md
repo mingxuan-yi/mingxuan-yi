@@ -14,40 +14,65 @@ toc:
 ## 1. Introduction
 This post provides a simple numerical approach using [PyTorch](https://pytorch.org/) to simulate the probability flow ordinary differential equation (ODE) of Langevin dynamics. The implementation is super simple, one just needs to slightly modify a code of Generative Adversarial Nets. Such implementation can be understood as ''non-parametric GANs'', which is an alternative view on GAN via the probability flow ODE, more details can be found in my paper ''[MonoFlow: Rethinking Divergence GANs via the Perspective of Wasserstein Gradient Flows](https://arxiv.org/abs/2302.01075)'' , or another excellant paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' by [Jean-Yves Franceschi](https://jyfranceschi.fr/). Briefly speaking, GANs can work without generators as a direct particle flow method similar to diffusion models.
 
-<figure style="text-align:center;">
-  <img src="{{ site.baseurl }}/assets/img/blog_pic/particles.gif" alt="Prob flow ODE" class="img-fluid rounded z-depth-1" style="width: 40%; height: auto; margin-left: auto; margin-right: auto;">
-  <figcaption>Figure 1. Transporting particles via the probability flow ODE.</figcaption>
-</figure>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <img src="{{ site.baseurl }}/assets/img/blog_pic/funnel_true.png" class="img-fluid rounded z-depth-1" style="width: 110%; height: auto;">
+        <figcaption style="text-align: center; margin-top: 10px;"> Log denisty plot of <a href="https://mc-stan.org/docs/2_18/stan-users-guide/reparameterization-section.html"> Neal's funnel
+    </a>distribution.</figcaption>
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        <img src="{{ site.baseurl }}/assets/img/blog_pic/funnel_langevin.gif" class="img-fluid rounded z-depth-1" style="width: 110%; height: auto;">
+        <figcaption style="text-align: center; margin-top: 10px;"> Langevin dynamics. 
+        <a target="_blank" href="https://colab.research.google.com/github/mingxuan-yi/prob_flow_ode/blob/main/funnel_langevin.ipynb">
+         <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+        </a>
+        </figcaption>
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        <img src="{{ site.baseurl }}/assets/img/blog_pic/funnel_ode.gif" class="img-fluid rounded z-depth-1" style="width: 110%; height: auto;">
+        <figcaption style="text-align: center; margin-top: 10px;"> Probability flow ODE. 
+        <a target="_blank" href="https://colab.research.google.com/github/mingxuan-yi/prob_flow_ode/blob/main/funnel_prob_ode.ipynb">
+        <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+        </a>
+        </figcaption>
+    </div>
+</div>
+View the notebooks on 
+<a href="https://colab.research.google.com/github/GoogleCloudPlatform/vertex-ai-samples/blob/main/notebooks/official/model_monitoring/model_monitoring.ipynb">
+        <img src="https://cloud.google.com/ml-engine/images/github-logo-32px.png" alt="GitHub logo"  style="width: 5%; height: auto;">
+</a>
+
 
 ## 2. Langevin dynamics and its probability flow ODE
 Langevin dynamics follows a stochastic differential equation (SDE) to describe the motion of a particle $$\mathbf{x}_t \in \mathbb{R}^n$$,
 \begin{aligned}
 \mathrm{d} \mathbf{x}\_t = \nabla\_\mathbf{x} \log p(\mathbf{x}\_t)\mathrm{d}t + \sqrt{2} \mathrm{d}\mathbf{w}\_t,
 \end{aligned}
-where $$\mathbf{w}_t$$ represents the Brownian motion. Using the Itô integration, we can obtain the Fokker-Placnk equation describing the marginal laws of the dynamics,
+where $$\mathbf{w}_t$$ represents the Brownian motion. Using the Itô integration, we can obtain the Fokker-Placnk equation describing the marginal laws of the dynamics over time,
 \begin{aligned}
 \frac{\partial q\_t(\mathbf{x})}{\partial t} = \text{div}\Big[ q\_t\big(\nabla\_\mathbf{x} \log q_t(\mathbf{x}) - \nabla\_\mathbf{x} \log p(\mathbf{x}) \big) \Big],
 \end{aligned}
-where $$\text{div}$$ is the [divergence operator](https://en.wikipedia.org/wiki/Divergence) in vector calculus. Under mild conditions, the Fokker-Planck equation shows that the equilibrium of the dynamics is achieved if and only if $$q_t=p$$ such that the infinitesimal change of the marginal $$\frac{\partial q_t}{\partial t}=0$$. Evolving a particle from the initilization $$\mathbf{x}_0 \sim q_0(\mathbf{x})$$, the marginal $$q_t(\mathbf{x})$$ converges (weakly) to the stationary distribution $$p(\mathbf{x})$$, or to some local modes of $$p(\mathbf{x})$$ within the finite time, which happens in practice. 
+where $$\text{div}$$ is the [divergence operator](https://en.wikipedia.org/wiki/Divergence) in vector calculus. If the target distribution decays at infinity $$\lim_{\mathbf{x} \to \infty} p(\mathbf{x})= 0$$, e.g., the Boltzmann distribution, the equilibrium (steady state) of the dynamics is achieved if and only if $$q_t=p$$ such that the infinitesimal change of the marginal $$\frac{\partial q_t}{\partial t}=0$$. Evolving a particle from the initilization $$\mathbf{x}_0 \sim q_0(\mathbf{x})$$, its marginal $$q_t(\mathbf{x})$$ will eventually converge (weakly) to the stationary distribution $$p(\mathbf{x})$$ as a consequencen of the second law of thermodynamics. However, establishing the finite-time convergence can be challenging; additional conditions for the target distribution must be met to guarantee convergence. For example, if $$p(\mathbf{x})$$ satisfies the [log-Sobolev inequality](https://en.wikipedia.org/wiki/Logarithmic_Sobolev_inequalities), then the maringal $$q_t(\mathbf{x})$$ will converge to $$p(\mathbf{x})$$ exponentially fast in terms of the Kullback-Leibler divergence. Nevertheless, we shall be able to expect that Langevin dynamics can at least find some local modes in practice.
 
-In order to numerically simulate the Langevin dynamics, we can use the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method) to discretize the SDE, this gives the well-known unadjusted Langevin algorithm (ULA),
+
+
+In order to numerically simulate Langevin dynamics, we can use the Euler-Maruyama method to discretize the SDE, this gives the well-known **unadjusted Langevin algorithm (ULA)**,
 \begin{align}
 \mathbf{x}\_{i+1} \leftarrow \mathbf{x}\_{i} + \epsilon \nabla_{\mathbf{x}} \log p(\mathbf{x}\_i) + \sqrt{2\epsilon} \mathcal{N}(0, I), \quad i=0, 1, 2\cdots
 \end{align}
-ULA has been wide used in Bayesian inference and generative modelings as a sampling method. For example, training Bayesian neural networks, energy-based models, or the earliest version of diffusion models which uses annealing techniques for the Langevin dynamics. Sampling via the ULA relies on the knowledge of the density function of the target distribution, this can be an obstacle especially in which the target distribution can only represented by some data points, e.g., image generation and simulation-based inference. In Figure 1, Langevin dynamics is not available because the target $$p(\mathbf{x})$$ is just a collection of data points. 
+ULA is widely used large scale machine learning. For example, it has been applied in the training of Bayesian neural networks and energy-based models, and it also serves as the sampling scheme for the earliest version of score-based diffusion models. 
 
 
-
-
-In [score-based diffusion models](https://yang-song.net/blog/2021/score/#probability-flow-ode), [Song](https://yang-song.net/) et al. showed that each SDE has an associated probability flow ODE sharing the same marginal $$q_t$$, see Eq. (13) in Song, et. al., 2021. Simply using this result, we can convert the Langevin SDE to the associated ODE,
+In [score-based diffusion models](https://yang-song.net/blog/2021/score/#probability-flow-ode), [Song](https://yang-song.net/) et al. showed that each SDE has an associated probability flow ODE sharing the same marginal $$q_t$$ (also see the Eq. (13) in [Song et. al, 2021](https://arxiv.org/abs/2011.13456)) Simply using this result, we can convert the Langevin SDE to the associated ODE,
 \begin{align}
 \mathrm{d} \mathbf{x}\_t = \Big [\nabla\_\mathbf{x} \log p(\mathbf{x}\_t)- \nabla\_\mathbf{x} \log q_t(\mathbf{x}\_t)\Big]\mathrm{d}t.
 \end{align}
-Similarly, using the Euler method to discretize the ODE gives 
+The marginal laws of the probability flow ODE also follow the same Fokker-Planck equation. The probability flow ODE differs from Langevin dynamics only in the nature of particle evolution: the former is deterministic, while the latter is stochastic. Similarly, using the Euler method to discretize the ODE gives 
 \begin{align}
 \mathbf{x}\_{i+1} \leftarrow \mathbf{x}\_{i} + \epsilon \big[\nabla_{\mathbf{x}} \log {p(\mathbf{x}\_i)}- \nabla_{\mathbf{x}} \log {q_{i}({\mathbf{x}\_i})}\big], \quad i=0, 1, 2\cdots
 \end{align}
-It is worth noting the vector field of the probability flow ODE is the gradient of the logrithm density ratio $$\log \big[p(\mathbf{x}_i) / q_{i}({\mathbf{x}_i})\big]$$. Next, we will discuss a method to obtain the log density ratio which is analogue to training the discriminator in GANs.
+It is worth noting the vector field of the probability flow ODE is the gradient of the log density ratio $$\log \big[p(\mathbf{x}_i) / q_{i}({\mathbf{x}_i})\big]$$. If we can access to the log density ratio, we can use the Euler method to simulate the ODE. Next, we will discuss a method to obtain the log density ratio which is analogue to training the discriminator in GANs.
 
 
 
