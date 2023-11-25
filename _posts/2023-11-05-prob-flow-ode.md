@@ -12,7 +12,7 @@ toc:
 ---
 
 ## 1. Introduction
-This post provides a simple numerical approach using [PyTorch](https://pytorch.org/) to simulate the probability flow ordinary differential equation (ODE) of Langevin dynamics. The implementation is super simple, one just needs to slightly modify a code of Generative Adversarial Nets. Such implementation can be understood as ''non-parametric GANs'', which is an alternative view via the probability flow ODE, more details can be found in my paper ''[MonoFlow: Rethinking Divergence GANs via the Perspective of Wasserstein Gradient Flows](https://arxiv.org/abs/2302.01075)'' , or another excellant paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' by [Jean-Yves Franceschi](https://jyfranceschi.fr/). Briefly speaking, GANs can work without generators as a direct particle flow method similar to diffusion models.
+This post provides a simple numerical approach using [PyTorch](https://pytorch.org/) to simulate the probability flow ordinary differential equation (ODE) of Langevin dynamics. The implementation is super simple, one just needs to slightly modify a code of Generative Adversarial Nets. Such an implementation can be understood as ''non-parametric GANs'', which is an alternative view via the probability flow ODE, more details can be found in my paper ''[MonoFlow: Rethinking Divergence GANs via the Perspective of Wasserstein Gradient Flows](https://arxiv.org/abs/2302.01075)'' , or another excellant paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' by [Jean-Yves Franceschi](https://jyfranceschi.fr/). Briefly speaking, GANs can work without generators as a direct particle flow method similar to diffusion models.
 
 
 <div class="row mt-3">
@@ -39,7 +39,7 @@ This post provides a simple numerical approach using [PyTorch](https://pytorch.o
 </div>
 
 <br/>
-The above demo uses a modified verison of Radford Neal's [funnel distribution](https://mc-stan.org/docs/2_18/stan-users-guide/reparameterization-section.html). The funnel distribution is known to be difficult to sample from due to its irregular geometric properties. Langevin dynamics utilizes the log density infomration to explore the distribution but its particles fail to reach the bottom area of the funnel. The probability flow ODE succeeds in this task as it does not rely on the density but on samples drawn from the target distributions. 
+The above demo uses a modified verison of Radford Neal's [funnel distribution](https://mc-stan.org/docs/2_18/stan-users-guide/reparameterization-section.html). The funnel distribution is known to be difficult to sample from due to its irregular geometric properties. Langevin dynamics utilizes the log density infomration to explore the distribution but its particles fail to reach the bottom area of the funnel. The probability flow ODE succeeds in this task as it does not rely on the density function but on samples drawn from the target distribution. 
 
 
 All jupyter notebooks can also be found on <a href="https://github.com/mingxuan-yi/prob_flow_ode">
