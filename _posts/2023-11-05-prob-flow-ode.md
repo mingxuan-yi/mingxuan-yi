@@ -12,13 +12,13 @@ toc:
 ---
 
 ## 1. Introduction
-This post provides a simple numerical approach using [PyTorch](https://pytorch.org/) to simulate the probability flow ordinary differential equation (ODE) of Langevin dynamics. The implementation is super simple, one just needs to slightly modify a code of Generative Adversarial Nets. Such an implementation can be understood as ''non-parametric GANs'', which is an alternative view via the probability flow ODE, more details can be found in my paper ''[MonoFlow: Rethinking Divergence GANs via the Perspective of Wasserstein Gradient Flows](https://arxiv.org/abs/2302.01075)'' , or another excellant paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' by [Jean-Yves Franceschi](https://jyfranceschi.fr/). Briefly speaking, GANs can work without generators as a direct particle flow method similar to diffusion models.
+This post provides a simple numerical approach using [PyTorch](https://pytorch.org/) to simulate the probability flow ordinary differential equation (ODE) of Langevin dynamics. The implementation is super simple, one just needs to slightly modify a code of Generative Adversarial Nets. Such an implementation can be understood as ''non-parametric GANs'', which is an alternative view via the probability flow ODE, more details can be found in my paper ''[MonoFlow: Rethinking Divergence GANs via the Perspective of Wasserstein Gradient Flows](https://arxiv.org/abs/2302.01075)'' , or another excellent paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' by [Jean-Yves Franceschi](https://jyfranceschi.fr/). Briefly speaking, GANs can work without generators as a direct particle flow method similar to diffusion models.
 
 
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <img src="{{ site.baseurl }}/assets/img/blog_pic/funnel_true.png" class="img-fluid rounded z-depth-1" style="width: 110%; height: auto;">
-        <figcaption style="text-align: center; margin-top: 10px;"> Log denisty plot of  Neal's funnel distribution.</figcaption>
+        <figcaption style="text-align: center; margin-top: 10px;"> Log density plot of  Neal's funnel distribution.</figcaption>
     </div>
     <div class="col-sm mt-3 mt-md-0">
         <img src="{{ site.baseurl }}/assets/img/blog_pic/funnel_langevin.gif" class="img-fluid rounded z-depth-1" style="width: 110%; height: auto;">
@@ -39,7 +39,7 @@ This post provides a simple numerical approach using [PyTorch](https://pytorch.o
 </div>
 
 <br/>
-The above demo uses a modified verison of Radford Neal's [funnel distribution](https://mc-stan.org/docs/2_18/stan-users-guide/reparameterization-section.html). The funnel distribution is known to be difficult to sample from due to its irregular geometric properties. Langevin dynamics utilizes the log density infomration to explore the distribution but its particles fail to reach the bottom area of the funnel. The probability flow ODE succeeds in this task as it does not rely on the density function but on samples drawn from the target distribution. 
+The above demo uses a modified version of Radford Neal's [funnel distribution](https://mc-stan.org/docs/2_18/stan-users-guide/reparameterization-section.html). The funnel distribution is known to be difficult to sample from due to its irregular geometric properties. Langevin dynamics utilizes the log density information to explore the distribution but its particles fail to reach the bottom area of the funnel. The probability flow ODE succeeds in this task as it does not rely on the density function but on samples drawn from the target distribution. 
 
 
 All jupyter notebooks can also be found on <a href="https://github.com/mingxuan-yi/prob_flow_ode">
@@ -58,7 +58,7 @@ where $$\mathbf{w}_t$$ represents the Brownian motion. Using the Itô integratio
 \end{aligned}
 where $$\text{div}$$ is the [divergence operator](https://en.wikipedia.org/wiki/Divergence) in vector calculus. 
 
-If the target distribution decays at infinity $$\lim_{\mathbf{x} \to \infty} p(\mathbf{x})= 0$$, e.g., the Boltzmann distribution $$p(\mathbf{x}) \propto \exp\big(-V(\mathbf{x})\big)$$, the equilibrium (steady state) of the dynamics is achieved if and only if $$q_t=p$$ such that the infinitesimal change of the marginal $$\frac{\partial q_t}{\partial t}=0$$. Evolving a particle from the initilization $$\mathbf{x}_0 \sim q_0(\mathbf{x})$$, its marginal $$q_t(\mathbf{x})$$ will eventually converge (weakly) to the stationary distribution $$p(\mathbf{x})$$ as a consequencen of the second law of thermodynamics. However, establishing the finite-time convergence can be challenging; additional conditions for the target distribution must be met to guarantee convergence. For example, if $$p(\mathbf{x})$$ satisfies the [log-Sobolev inequality](https://en.wikipedia.org/wiki/Logarithmic_Sobolev_inequalities), then the maringal $$q_t(\mathbf{x})$$ will converge to $$p(\mathbf{x})$$ exponentially fast in terms of the Kullback-Leibler divergence. Nevertheless, we shall be able to expect that Langevin dynamics can at least find some local modes in practice.
+If the target distribution decays at infinity $$\lim_{\mathbf{x} \to \infty} p(\mathbf{x})= 0$$, e.g., the Boltzmann distribution $$p(\mathbf{x}) \propto \exp\big(-V(\mathbf{x})\big)$$, the equilibrium (steady state) of the dynamics is achieved if and only if $$q_t=p$$ such that the infinitesimal change of the marginal is $$\frac{\partial q_t}{\partial t}=0$$. Evolving a particle from the initialization $$\mathbf{x}_0 \sim q_0(\mathbf{x})$$, its marginal $$q_t(\mathbf{x})$$ will eventually converge (weakly) to the stationary distribution $$p(\mathbf{x})$$ as a consequence of the second law of thermodynamics. However, establishing the finite-time convergence can be challenging; additional conditions for the target distribution must be met to guarantee convergence. For example, if $$p(\mathbf{x})$$ satisfies the [log-Sobolev inequality](https://en.wikipedia.org/wiki/Logarithmic_Sobolev_inequalities), then the marginal $$q_t(\mathbf{x})$$ will converge to $$p(\mathbf{x})$$ exponentially fast in terms of the Kullback-Leibler divergence. Nevertheless, we shall be able to expect that Langevin dynamics can at least find some local modes in practice.
 
 
 
@@ -86,7 +86,7 @@ Recall that in GANs, we train a discriminator to solve the following binary clas
 \begin{aligned}
 \max\_D \qquad \mathbb{E}\_{p} \big[\log D(\mathbf{x})\big]+ \mathbb{E}\_{q_i} \big[\log (1-D(\mathbf{x}))\big].
 \end{aligned}
-The optimal discrminator is given by (see Proposition 1 in [Goodfellow et. al. 2014](https://arxiv.org/abs/1406.2661)),
+The optimal discriminator is given by (see Proposition 1 in [Goodfellow et. al. 2014](https://arxiv.org/abs/1406.2661)),
 \begin{aligned}
 D^{\*}(\mathbf{x}) = \frac{p(\mathbf{x})}{p(\mathbf{x}) + q\_i(\mathbf{x})}
 \end{aligned}
@@ -102,7 +102,7 @@ This gives us a strategy for sampling via the probability flow ODE with bi-level
 
 ## 3. Modifying the code of GANs
 
-- The first step is to remove the generator `G(z)`, instead we initialize $$512$$ particles `xs` and put them into the `SGD` optimizer corresponding to the Euler discretization of the ODE. One can also use `optim.Adam([xs], lr = 0.001)` to incorporate the momentum of gradients. Note that we use the loss function criterion `nn.BCEWithLogitsLoss()`, this criterion directly works with the logit output of a binary classifer where `D_logit` is a MLP in this example.
+- The first step is to remove the generator `G(z)`, instead we initialize $$512$$ particles `xs` and put them into the `SGD` optimizer corresponding to the Euler discretization of the ODE. One can also use `optim.Adam([xs], lr = 0.001)` to incorporate the momentum of gradients. Note that we use the loss function criterion `nn.BCEWithLogitsLoss()`, this criterion directly works with the logit output of a binary classifier where `D_logit` is a MLP in this example.
 
 ```diff
 data_dim = 2
@@ -121,7 +121,7 @@ D_optimizer = optim.Adam(D_logit.parameters(), lr = 0.001)
 +G_optimizer = optim.SGD([xs], lr = 0.001)
 ```
 
-- The next step is to modify the training procedure of GANs. There is no difference on training the discriminator, we just replace fake samples with a minibatch of `xs` and use a single step gradient descent to train the discriminator. The `G_loss` is now changed to `-torch.sum(D_logit(xs))` with the purpose of computing the per particle gradient. This is because there is no explicit way to perform batch gradient operation by backpropogating the loss in PyTorch, we can instead sum all per particle forward pass together to generate a scalar and backpropogating this scalar would give each particle its own gradient. An alternative is to use `torch.autograd` class but it could be more complicated.
+- The next step is to modify the training procedure of GANs. There is no difference on training the discriminator, we just replace fake samples with a minibatch of `xs` and use a single step gradient descent to train the discriminator. The `G_loss` is now changed to `-torch.sum(D_logit(xs))` with the purpose of computing the per particle gradient. This is because there is no explicit way to perform batch gradient operation by backpropagating the loss in PyTorch, we can instead sum all per particle forward pass together to generate a scalar and backpropagating this scalar would give each particle its own gradient. An alternative is to use `torch.autograd` class but it could be more complicated.
 
 ```diff
 #==============Train the discriminator===============#
@@ -156,7 +156,7 @@ G_optimizer.step()
 ```
 So, that's it! We have deleted 7 lines and added 6 lines. Now we can run the code to simulate the probability flow ODE. 
 
-The full code can be found here <a target="_blank" href="https://colab.research.google.com/github/mingxuan-yi/prob_flow_ode/blob/main/scurve_prob_ode.ipynb">
+The full code is available at <a target="_blank" href="https://colab.research.google.com/github/mingxuan-yi/prob_flow_ode/blob/main/scurve_prob_ode.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"  style="width: 15%; height: auto;"/> </a>. 
 
 <div class="row mt-3 justify-content-center">
