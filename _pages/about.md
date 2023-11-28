@@ -19,3 +19,5 @@ social: true  # includes social icons at the bottom of the page
 I am a PhD student in statistical machine learning at the University of Bristol, working with [Dr Song Liu](https://allmodelsarewrong.net/). My PhD research is partially supported by a grant from [The Alan Turing Institute](https://www.turing.ac.uk/). Before that, I was a machine learning engineer working on natural language processing at Samsung Research.
 
 I'm interested in approximate inference, density ratio estimations, optimal transport and generative models.
+
+Apart from my academic pursuits, I love to unwind by playing poker - it's my go-to game for a bit of strategy and fun.
