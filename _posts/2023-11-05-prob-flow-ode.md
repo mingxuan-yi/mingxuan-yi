@@ -12,7 +12,7 @@ toc:
 ---
 
 ## 1. Introduction
-This post provides a simple numerical approach using [PyTorch](https://pytorch.org/) to simulate the probability flow ordinary differential equation (ODE) of Langevin dynamics. The implementation is super simple, one just needs to slightly modify a code of Generative Adversarial Nets. Such an implementation can be understood as ''non-parametric GANs'', which is an alternative view via the probability flow ODE, more details can be found in my paper ''[MonoFlow: Rethinking Divergence GANs via the Perspective of Wasserstein Gradient Flows](https://arxiv.org/abs/2302.01075)'' , or another excellent paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' by [Jean-Yves Franceschi](https://jyfranceschi.fr/). Briefly speaking, GANs can work without generators as a direct particle flow method similar to diffusion models.
+This post provides a simple numerical approach using [PyTorch](https://pytorch.org/) to simulate the probability flow ordinary differential equation (ODE) of Langevin dynamics. The implementation is super simple, one just needs to slightly modify a code of Generative Adversarial Nets. Such an implementation can be understood as ''non-parametric GANs'', which is an alternative view via the probability flow ODE, more details can be found in my paper ''[MonoFlow: Rethinking Divergence GANs via the Perspective of Wasserstein Gradient Flows](https://arxiv.org/abs/2302.01075)'' , or another excellent paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' by [Jean-Yves Franceschi](https://jyfranceschi.fr/). Briefly speaking, GANs can work without generators as a direct particle flow method similar to diffusion models. 
 
 
 <div class="row mt-3">
@@ -58,7 +58,7 @@ where $$\mathbf{w}_t$$ represents the Brownian motion. Using the Itô integratio
 \end{aligned}
 where $$\text{div}$$ is the [divergence operator](https://en.wikipedia.org/wiki/Divergence) in vector calculus. 
 
-If the target distribution decays at infinity $$\lim_{\mathbf{x} \to \infty} p(\mathbf{x})= 0$$, e.g., the Boltzmann distribution $$p(\mathbf{x}) \propto \exp\big(-V(\mathbf{x})\big)$$, the equilibrium (steady state) of the dynamics is achieved if and only if $$q_t=p$$ such that the infinitesimal change of the marginal is $$\frac{\partial q_t}{\partial t}=0$$. Evolving a particle from the initialization $$\mathbf{x}_0 \sim q_0(\mathbf{x})$$, its marginal $$q_t(\mathbf{x})$$ will eventually converge (weakly) to the stationary distribution $$p(\mathbf{x})$$ as a consequence of the second law of thermodynamics. However, establishing the finite-time convergence can be challenging; additional conditions for the target distribution must be met to guarantee convergence. For example, if $$p(\mathbf{x})$$ satisfies the [log-Sobolev inequality](https://en.wikipedia.org/wiki/Logarithmic_Sobolev_inequalities), then the marginal $$q_t(\mathbf{x})$$ will converge to $$p(\mathbf{x})$$ exponentially fast in terms of the Kullback-Leibler divergence. Nevertheless, we shall be able to expect that Langevin dynamics can at least find some local modes in practice.
+If the target distribution decays at infinity $$\lim_{\mathbf{x} \to \infty} p(\mathbf{x})= 0$$, e.g., the Boltzmann distribution $$p(\mathbf{x}) \propto \exp\big(-V(\mathbf{x})\big)$$, the equilibrium (steady state) of the dynamics is achieved if and only if $$q_t=p$$ such that the infinitesimal change of the marginal is $$\frac{\partial q_t}{\partial t}=0$$. Evolving a particle from the initialization $$\mathbf{x}_0 \sim q_0(\mathbf{x})$$, its marginal $$q_t(\mathbf{x})$$ will eventually converge (weakly) to the stationary distribution $$p(\mathbf{x})$$ as a consequence of the second law of thermodynamics (energy being dissipated). However, establishing the convergence rate within finite-time can be challenging; additional conditions for the target distribution must be met to guarantee convergence. For example, if $$p(\mathbf{x})$$ satisfies the [log-Sobolev inequality](https://en.wikipedia.org/wiki/Logarithmic_Sobolev_inequalities), then the marginal $$q_t(\mathbf{x})$$ will converge to $$p(\mathbf{x})$$ exponentially fast in terms of the Kullback-Leibler divergence. Nevertheless, we shall be able to expect that Langevin dynamics can at least find some local modes in practice.
 
 
 
@@ -69,7 +69,7 @@ In order to numerically simulate Langevin dynamics, we can use the Euler-Maruyam
 Iteratively running ULA, we can gradually transport samples from $$q_0(\mathbf{x})$$ to $$p(\mathbf{x})$$ as shown in the previous demo to sample from the funnel distribution. ULA is widely used in large-scale machine learning. For example, it can be applied in the training of Bayesian neural networks and energy-based models, and it also serves as the sampling scheme for the earliest version of score-based diffusion models ([Song and Ermon, 2019](https://arxiv.org/abs/1907.05600)). 
 
 #### 2.1. Probability flow ODEs
-In [score-based diffusion models](https://yang-song.net/blog/2021/score/#probability-flow-ode), it is shown that each SDE has an associated probability flow ODE sharing the same marginal $$q_t$$ (also see the Eq. (13) in [Song et. al., 2021](https://arxiv.org/abs/2011.13456)). Simply using this result, we can convert the Langevin SDE to the associated ODE,
+There are several approaches to derive the probability flow ODE of Langevin dynamics. The most accessible one is using the result from [score-based diffusion models](https://yang-song.net/blog/2021/score/#probability-flow-ode). In score-based diffusion models, it is shown that each SDE has an associated probability flow ODE sharing the same marginal $$q_t$$ (also see the Eq. (13) in [Song et. al., 2021](https://arxiv.org/abs/2011.13456)). Simply using this result, we can convert the Langevin SDE to the associated ODE,
 \begin{aligned}
 \mathrm{d} \mathbf{x}\_t = \Big [\nabla\_\mathbf{x} \log p(\mathbf{x}\_t)- \nabla\_\mathbf{x} \log q_t(\mathbf{x}\_t)\Big]\mathrm{d}t.
 \end{aligned}
@@ -94,11 +94,13 @@ Since the last layer of the discriminator $$D^{*}(\mathbf{x})$$ is activated by 
 \begin{aligned}
 \sigma^{-1}\big(D^{\*}(\mathbf{x})\big)  =\log \frac{p(\mathbf{x})}{q_{i}({\mathbf{x}})},
 \end{aligned}
-$$\sigma^{-1}\big(D^{*}(\mathbf{x})\big)$$ is called the logit output of a binary classifier.
+$$\sigma^{-1}\big(D^{*}(\mathbf{x})\big)$$ is called the logit output of a binary classifier. 
 
 This gives us a strategy for sampling via the probability flow ODE with bi-level optimization which is similar to training GANs, 
 - Training the discriminator with a few steps of gradient update using samples from $$q_i$$ and $$p$$.
 - Computing the gradient of the logit output and updating particles using Eq. (1).
+ 
+In the conventional GAN theory, training the discriminator was designed to estimate the Jensen-Shannon divergence (JSD), however, the smoothness between the estimated JSD and the generator's distribution does not exist in practice because the divergence is reconstructed using samples. One can imagine that the Monte Carlo evluation of the binary cross entropy involves a discrete step--sampling. This is the major reason causing the inconsistency between the GAN theory and its practical algorithms, e.g., the non-saturated tricks. The essential information we obtained in training the discriminator is not the JSD, but is the density ratio function which indicates the vector fields.
 
 ## 3. Modifying the code of GANs
 
@@ -156,7 +158,7 @@ G_optimizer.step()
 ```
 So, that's it! We have deleted 7 lines and added 6 lines. Now we can run the code to simulate the probability flow ODE. 
 
-The full code is available at <a target="_blank" href="https://colab.research.google.com/github/mingxuan-yi/prob_flow_ode/blob/main/scurve_prob_ode.ipynb">
+The full code for the S curve is available at <a target="_blank" href="https://colab.research.google.com/github/mingxuan-yi/prob_flow_ode/blob/main/scurve_prob_ode.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"  style="width: 15%; height: auto;"/> </a>. 
 
 <div class="row mt-3 justify-content-center">
