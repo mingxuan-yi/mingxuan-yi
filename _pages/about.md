@@ -23,6 +23,7 @@ In general, my research interests lie in a broad range of (deep) probabilistic m
 - Monte Carlo sampling
 - Density ratio estimation
 - Optimal transport and gradient flows
+- Generative models
 
 
 
