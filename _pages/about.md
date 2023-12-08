@@ -18,7 +18,7 @@ social: true  # includes social icons at the bottom of the page
 
 I am a final-year PhD student in statistical machine learning at the University of Bristol, working with [Dr Song Liu](https://allmodelsarewrong.net/). Before that, I was a machine learning engineer working on natural language processing at Samsung Research.
 
-In general, my research interests lie in a broad range of (deep) probabilistic machine learning, with applications from generative modeling to language models. The highlight of my current research focuses on developing efficient and scalable algorithms for Bayesian learning, Monte Carlo methods, and score-based generative models. Some of my areas of expertise:
+In general, my research interests lie in a broad range of (deep) probabilistic machine learning, with applications from generative modeling to language models. A key focus of my current research is the development of efficient and scalable algorithms for Bayesian learning, Monte Carlo methods, and score-based generative models. Some of my areas of expertise:
 - Bayesian machine learning
 - Monte Carlo sampling
 - Density ratio estimation
