@@ -12,7 +12,7 @@ toc:
 ---
 
 ## 1. Introduction
-This post provides a simple numerical approach using [PyTorch](https://pytorch.org/) to simulate the probability flow ordinary differential equation (ODE) of Langevin dynamics. The implementation is super simple, one just needs to slightly modify a code of Generative Adversarial Nets. Such an implementation can be understood as ''non-parametric GANs'', which is an alternative view via the probability flow ODE, more details can be found in my paper ''[MonoFlow: Rethinking Divergence GANs via the Perspective of Wasserstein Gradient Flows](https://arxiv.org/abs/2302.01075)''. Additionally, the paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' provides a comprehensive exploration of IPM GANs. Briefly speaking, we can remove the generator in GANs and simulate a probability flow ODE similar to diffusion models. 
+This post provides a simple numerical approach using [PyTorch](https://pytorch.org/) to simulate the probability flow ordinary differential equation (ODE) of Langevin dynamics. The implementation is super simple, one just needs to slightly modify a code of Generative Adversarial Nets. Such an implementation can be understood as ''non-parametric GANs'', which is an alternative view via the probability flow ODE, more details can be found in my paper ''[MonoFlow: Rethinking Divergence GANs via the Perspective of Wasserstein Gradient Flows](https://arxiv.org/abs/2302.01075)''.  Briefly speaking, we can remove the generator in GANs and simulate a probability flow ODE similar to diffusion models. 
 
 
 <div class="row mt-3">
@@ -44,7 +44,9 @@ The above demo uses a modified version of Radford Neal's [funnel distribution](h
 
 All jupyter notebooks can also be found on <a href="https://github.com/mingxuan-yi/prob_flow_ode">
         <img src="https://cloud.google.com/ml-engine/images/github-logo-32px.png" alt="GitHub logo"  style="width: 3%; height: auto;">
-</a>.
+</a>. 
+
+Additionally, the paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' and ''[GANs Settle Scores!](https://arxiv.org/abs/2306.01654)''provide explorations of non parametric versions of Integral Probability Metric GANs.
 
 
 ## 2. Langevin dynamics and its probability flow ODE
