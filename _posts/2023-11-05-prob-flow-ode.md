@@ -12,7 +12,7 @@ toc:
 ---
 
 ## 1. Introduction
-This post provides a simple numerical approach using [PyTorch](https://pytorch.org/) to simulate the probability flow ordinary differential equation (ODE) of Langevin dynamics. The implementation is super simple, one just needs to slightly modify a code of Generative Adversarial Nets. Such an implementation can be understood as ''non-parametric GANs'', which is an alternative view via the probability flow ODE, more details can be found in my paper ''[MonoFlow: Rethinking Divergence GANs via the Perspective of Wasserstein Gradient Flows](https://arxiv.org/abs/2302.01075)'' or refer to ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' for IPM GANs. Briefly speaking, GANs can work without generators as a direct particle flow method similar to diffusion models. 
+This post provides a simple numerical approach using [PyTorch](https://pytorch.org/) to simulate the probability flow ordinary differential equation (ODE) of Langevin dynamics. The implementation is super simple, one just needs to slightly modify a code of Generative Adversarial Nets. Such an implementation can be understood as ''non-parametric GANs'', which is an alternative view via the probability flow ODE, more details can be found in my paper ''[MonoFlow: Rethinking Divergence GANs via the Perspective of Wasserstein Gradient Flows](https://arxiv.org/abs/2302.01075)''. Additionally, the paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' provides a comprehensive exploration of IPM GANs. Briefly speaking, we can remove the generator in GANs and simulate a probability flow ODE similar to diffusion models. 
 
 
 <div class="row mt-3">
