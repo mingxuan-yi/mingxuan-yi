@@ -46,7 +46,7 @@ All jupyter notebooks can also be found on <a href="https://github.com/mingxuan-
         <img src="https://cloud.google.com/ml-engine/images/github-logo-32px.png" alt="GitHub logo"  style="width: 3%; height: auto;">
 </a>. 
 
-Additionally, the paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' and ''[GANs Settle Scores!](https://arxiv.org/abs/2306.01654)''provide explorations of non parametric versions of Integral Probability Metric GANs.
+Additionally, the paper ''[Unifying GANs and Score-Based Diffusion as Generative Particle Models](https://arxiv.org/abs/2305.16150)'' and ''[GANs Settle Scores!](https://arxiv.org/abs/2306.01654)'' provide explorations of non parametric versions of Integral Probability Metric GANs.
 
 
 ## 2. Langevin dynamics and its probability flow ODE
@@ -56,7 +56,7 @@ Langevin dynamics follows a stochastic differential equation (SDE) to describe t
 \end{aligned}
 where $$\mathbf{w}_t$$ represents the Brownian motion. Using the Itô integration, we can obtain the Fokker-Placnk equation describing the marginal laws of the dynamics over time,
 \begin{aligned}
-\frac{\partial q\_t(\mathbf{x})}{\partial t} = \text{div}\Big[ q\_t\big(\nabla\_\mathbf{x} \log q_t(\mathbf{x}) - \nabla\_\mathbf{x} \log p(\mathbf{x}) \big) \Big],
+\frac{\partial q\_t(\mathbf{x})}{\partial t} = \text{div}\Big[ q\_t(\mathbf{x})\big(\nabla\_\mathbf{x} \log q_t(\mathbf{x}) - \nabla\_\mathbf{x} \log p(\mathbf{x}) \big) \Big],
 \end{aligned}
 where $$\text{div}$$ is the [divergence operator](https://en.wikipedia.org/wiki/Divergence) in vector calculus. 
 
